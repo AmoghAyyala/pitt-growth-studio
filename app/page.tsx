@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react';
 
-type PageKey = 'home' | 'websites' | 'google-ads' | 'seo' | 'faqs' | 'book' | 'pricing' | 'invoice';
+type PageKey = 'home' | 'websites' | 'google-ads' | 'seo' | 'faqs' | 'book' | 'pricing' | 'invoice' | 'contact';
 
 type ServicePageProps = {
   title: string;
@@ -47,6 +47,7 @@ const pages: { key: PageKey; label: string }[] = [
   { key: 'seo', label: 'SEO' },
   { key: 'pricing', label: 'Pricing' },
   { key: 'faqs', label: 'FAQs' },
+  { key: 'contact', label: 'Contact' },
 ];
 
 const testimonials = [
@@ -696,6 +697,152 @@ export default function PittsburghAgencySite() {
     </Section>
   );
 
+  const ContactPage = () => (
+    <Section>
+      <section className="py-16 md:py-20">
+        <div className="grid items-start gap-12 lg:grid-cols-2">
+
+          {/* Left — info */}
+          <div>
+            <h1 className="text-5xl font-semibold tracking-tight text-white">Contact &amp; Support</h1>
+            <p className="mt-5 max-w-xl text-lg leading-8 text-slate-300">
+              Have a question about your project or need help with something? Reach out and we&apos;ll get back to you as soon as possible.
+            </p>
+
+            <div className="mt-10 space-y-4">
+              {/* Email */}
+              <div className="flex items-start gap-4 rounded-[2rem] border border-slate-700 bg-slate-800/90 p-6 shadow-sm">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-blue-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-400">Email us</p>
+                  <a href="mailto:hello@pittgrowthstudio.com" className="mt-0.5 block font-semibold text-white hover:text-blue-300 transition">
+                    hello@pittgrowthstudio.com
+                  </a>
+                  <p className="mt-1 text-sm text-slate-500">We typically respond within 1 business day.</p>
+                </div>
+              </div>
+
+              {/* Hours */}
+              <div className="flex items-start gap-4 rounded-[2rem] border border-slate-700 bg-slate-800/90 p-6 shadow-sm">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500/20 text-orange-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-400">Support hours</p>
+                  <p className="mt-0.5 font-semibold text-white">Monday – Friday</p>
+                  <p className="mt-0.5 text-sm text-slate-400">9:00 AM – 6:00 PM ET</p>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="flex items-start gap-4 rounded-[2rem] border border-slate-700 bg-slate-800/90 p-6 shadow-sm">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-500/20 text-slate-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-400">Based in</p>
+                  <p className="mt-0.5 font-semibold text-white">Pittsburgh, PA</p>
+                  <p className="mt-0.5 text-sm text-slate-400">Serving local businesses across the Pittsburgh area.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 text-sm text-slate-400">
+              Looking for quick answers?{' '}
+              <button onClick={() => switchPage('faqs')} className="font-medium text-blue-300 hover:text-white transition underline underline-offset-2">
+                Check our FAQs
+              </button>
+            </div>
+          </div>
+
+          {/* Right — form */}
+          <div className="rounded-[2rem] border border-slate-700 bg-slate-800/90 p-8 shadow-xl">
+            <h2 className="text-2xl font-semibold text-white">Send us a message</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Fill out the form and we&apos;ll follow up by email.</p>
+            <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleInputChange}
+                className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                placeholder="Your name"
+                required
+              />
+              <input
+                name="businessName"
+                value={form.businessName}
+                onChange={handleInputChange}
+                className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                placeholder="Business name"
+                required
+              />
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleInputChange}
+                className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                placeholder="Email address"
+                required
+              />
+              <select
+                name="service"
+                value={form.service}
+                onChange={handleInputChange}
+                className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-400"
+              >
+                <option>Website Creation</option>
+                <option>Google Ads</option>
+                <option>Local SEO</option>
+                <option>Billing / Payments</option>
+                <option>General Question</option>
+                <option>Other</option>
+              </select>
+              <textarea
+                name="message"
+                value={form.message}
+                onChange={handleInputChange}
+                className="min-h-[130px] rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                placeholder="How can we help you?"
+                required
+              />
+              {/* Security: honeypot field — hidden from real users, traps bots */}
+              <input
+                name="honeypot"
+                value={form.honeypot}
+                onChange={handleInputChange}
+                tabIndex={-1}
+                aria-hidden="true"
+                autoComplete="off"
+                style={{ display: 'none' }}
+              />
+              {submitMessage ? (
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+                  {submitMessage}
+                </div>
+              ) : null}
+              {submitError ? (
+                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                  {submitError}
+                </div>
+              ) : null}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-orange-400 px-6 py-3.5 font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isSubmitting ? 'Sending...' : 'Send Message'} <ArrowRight className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </section>
+    </Section>
+  );
+
   const InvoicePage = () => (
     <Section>
       <section className="py-16 md:py-20">
@@ -908,6 +1055,7 @@ export default function PittsburghAgencySite() {
     }
 
     if (page === 'pricing') return <PricingPage />;
+    if (page === 'contact') return <ContactPage />;
     if (page === 'invoice') return <InvoicePage />;
     if (page === 'faqs') return <FAQPage />;
     if (page === 'book') return <BookPage />;

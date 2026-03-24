@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     await resend.emails.send({
       from: 'Pitt Growth Studio <hello@pittgrowthstudio.com>',
-      to: 'pittgrowthstudio@gmail.com',
+      to: 'hello@pittgrowthstudio.com',
       replyTo: safeEmail,
       subject: `New website lead from ${safeBusinessName}`,
       text: `
