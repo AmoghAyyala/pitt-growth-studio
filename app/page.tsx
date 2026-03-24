@@ -48,7 +48,6 @@ const pages: { key: PageKey; label: string }[] = [
   { key: 'pricing', label: 'Pricing' },
   { key: 'payment', label: 'Pay' },
   { key: 'faqs', label: 'FAQs' },
-  { key: 'invoice', label: 'Send Invoice' },
 ];
 
 const testimonials = [
