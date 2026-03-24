@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react';
 
-type PageKey = 'home' | 'websites' | 'google-ads' | 'seo' | 'faqs' | 'book' | 'pricing';
+type PageKey = 'home' | 'websites' | 'google-ads' | 'seo' | 'faqs' | 'book' | 'pricing' | 'payment';
 
 type ServicePageProps = {
   title: string;
@@ -28,6 +28,7 @@ type FormState = {
   email: string;
   service: string;
   message: string;
+  honeypot: string;
 };
 
 type PricingPlan = {
@@ -45,6 +46,7 @@ const pages: { key: PageKey; label: string }[] = [
   { key: 'google-ads', label: 'Google Ads' },
   { key: 'seo', label: 'SEO' },
   { key: 'pricing', label: 'Pricing' },
+  { key: 'payment', label: 'Pay' },
   { key: 'faqs', label: 'FAQs' },
 ];
 
@@ -263,7 +265,50 @@ export default function PittsburghAgencySite() {
     email: '',
     service: 'Website Creation',
     message: '',
+    honeypot: '',
   });
+
+  // Payment form state
+  const [payUpfront, setPayUpfront] = useState('');
+  const [payMonthly, setPayMonthly] = useState('');
+  const [payName, setPayName] = useState('');
+  const [isPayLoading, setIsPayLoading] = useState(false);
+  const [payError, setPayError] = useState('');
+
+  const handlePayment = async () => {
+    setPayError('');
+    const upfront = parseFloat(payUpfront);
+    const monthly = parseFloat(payMonthly);
+    const total = (isNaN(upfront) ? 0 : upfront) + (isNaN(monthly) ? 0 : monthly);
+    if (total <= 0) {
+      setPayError('Please enter a valid upfront fee or monthly cost.');
+      return;
+    }
+    setIsPayLoading(true);
+    try {
+      const lineItems: { label: string; amount: number }[] = [];
+      if (!isNaN(upfront) && upfront > 0) lineItems.push({ label: 'Upfront Fee', amount: Math.round(upfront * 100) });
+      if (!isNaN(monthly) && monthly > 0) lineItems.push({ label: 'Monthly Cost', amount: Math.round(monthly * 100) });
+      const totalAmount = lineItems.reduce((sum, i) => sum + i.amount, 0);
+      const description = lineItems.map(i => `${i.label}: $${(i.amount / 100).toFixed(2)}`).join(' + ');
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serviceName: payName ? `Payment for ${payName}` : 'Pittsburgh Growth Studio Services',
+          amount: totalAmount,
+          description,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to create payment.');
+      window.location.href = data.url;
+    } catch (err) {
+      setPayError(err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setIsPayLoading(false);
+    }
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -283,6 +328,8 @@ export default function PittsburghAgencySite() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // Security: honeypot check — bots fill hidden fields, humans don't
+    if (form.honeypot) return;
     setIsSubmitting(true);
     setSubmitMessage('');
     setSubmitError('');
@@ -301,7 +348,7 @@ export default function PittsburghAgencySite() {
       }
 
       setSubmitMessage('Your request was sent successfully. We will be in touch soon.');
-      setForm({ name: '', businessName: '', email: '', service: 'Website Creation', message: '' });
+      setForm({ name: '', businessName: '', email: '', service: 'Website Creation', message: '', honeypot: '' });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Something went wrong. Please try again.';
       setSubmitError(message);
@@ -517,6 +564,16 @@ export default function PittsburghAgencySite() {
                 placeholder="Tell us about your business and goals"
                 required
               />
+              {/* Security: honeypot field — hidden from real users, traps bots */}
+              <input
+                name="honeypot"
+                value={form.honeypot}
+                onChange={handleInputChange}
+                tabIndex={-1}
+                aria-hidden="true"
+                autoComplete="off"
+                style={{ display: 'none' }}
+              />
               {submitMessage ? (
                 <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
                   {submitMessage}
@@ -547,7 +604,7 @@ export default function PittsburghAgencySite() {
         <div className="max-w-2xl">
           <h1 className="text-5xl font-semibold tracking-tight text-white">Our services</h1>
           <p className="mt-5 text-lg leading-8 text-slate-300">
-            Every business is different. Reach out and we&apos;ll put together a quote based on your specific goals and what your business actually needs.
+            Every business is different. Reach out and we&apos;ll put together a quote based on your specific goals.
           </p>
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -560,44 +617,98 @@ export default function PittsburghAgencySite() {
             >
               <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${plan.gradient}`} />
               {plan.popular && (
-                <div className="mb-3 inline-flex rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-300">
-                  Most Popular
-                </div>
+                <div className="mb-3 inline-flex rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-300">Most Popular</div>
               )}
               {plan.bundle && (
-                <div className="mb-3 inline-flex rounded-full bg-orange-500/20 px-3 py-1 text-xs font-semibold text-orange-300">
-                  Best Value
-                </div>
+                <div className="mb-3 inline-flex rounded-full bg-orange-500/20 px-3 py-1 text-xs font-semibold text-orange-300">Best Value</div>
               )}
               <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
-              <div className="mt-2 text-sm font-medium text-blue-400">Contact us for pricing</div>
-              <p className="mt-3 text-sm leading-6 text-slate-400">{plan.description}</p>
-              <ul className="mt-5 space-y-2.5">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-300">
-                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => switchPage('book')}
-                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-orange-400 px-4 py-3 font-semibold text-white transition hover:opacity-95"
-              >
-                Get a Quote
-              </button>
+              <p className="mt-2 text-sm leading-6 text-slate-400">{plan.description}</p>
+              <div className="mt-5 flex gap-3">
+                <button
+                  onClick={() => switchPage('book')}
+                  className="flex-1 rounded-2xl border border-slate-600 px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:text-white"
+                >
+                  Get a Quote
+                </button>
+                <button
+                  onClick={() => switchPage('payment')}
+                  className="flex-1 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-orange-400 px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+                >
+                  Pay Now
+                </button>
+              </div>
             </div>
           ))}
         </div>
-        <p className="mt-8 text-center text-sm text-slate-400">
-          Not sure which service is right for you?{' '}
-          <button
-            onClick={() => switchPage('book')}
-            className="text-blue-400 underline-offset-4 hover:underline"
-          >
-            Tell us about your business
-          </button>{' '}and we&apos;ll recommend the best fit.
-        </p>
+      </section>
+    </Section>
+  );
+
+  const PaymentPage = () => (
+    <Section>
+      <section className="py-16 md:py-20">
+        <div className="mx-auto max-w-lg">
+          <h1 className="text-5xl font-semibold tracking-tight text-white">Make a Payment</h1>
+          <p className="mt-4 text-lg leading-8 text-slate-300">
+            Enter the amounts agreed upon with your account manager. You will be redirected to a secure Stripe checkout page.
+          </p>
+          <div className="mt-10 rounded-[2rem] border border-slate-700 bg-slate-800/90 p-8 shadow-xl">
+            <div className="grid gap-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-300">Your name or business (optional)</label>
+                <input
+                  value={payName}
+                  onChange={(e) => setPayName(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                  placeholder="e.g. Smith Roofing"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-300">Upfront fee ($)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={payUpfront}
+                  onChange={(e) => setPayUpfront(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-300">Monthly cost ($)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={payMonthly}
+                  onChange={(e) => setPayMonthly(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                  placeholder="0.00"
+                />
+              </div>
+              {(parseFloat(payUpfront) > 0 || parseFloat(payMonthly) > 0) && (
+                <div className="rounded-2xl border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm text-slate-300">
+                  Total: <span className="font-semibold text-white">
+                    ${((parseFloat(payUpfront) || 0) + (parseFloat(payMonthly) || 0)).toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {payError && (
+                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{payError}</div>
+              )}
+              <button
+                onClick={handlePayment}
+                disabled={isPayLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-orange-400 px-6 py-3.5 font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isPayLoading ? 'Redirecting...' : 'Pay Securely via Stripe'} <ArrowRight className="h-4 w-4" />
+              </button>
+              <p className="text-center text-xs text-slate-500">Payments are processed securely by Stripe. We do not store your card details.</p>
+            </div>
+          </div>
+        </div>
       </section>
     </Section>
   );
@@ -652,6 +763,7 @@ export default function PittsburghAgencySite() {
     }
 
     if (page === 'pricing') return <PricingPage />;
+    if (page === 'payment') return <PaymentPage />;
     if (page === 'faqs') return <FAQPage />;
     if (page === 'book') return <BookPage />;
     return <HomePage />;
