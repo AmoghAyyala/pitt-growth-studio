@@ -351,10 +351,10 @@ export default function PittsburghAgencySite() {
           <div className="relative grid items-center gap-12 py-16 md:py-24 lg:grid-cols-2">
             <div>
               <h1 className="text-5xl font-semibold leading-tight tracking-tight text-white md:text-6xl">
-                Help your business get found and bring in more local customers
+                Websites and Google Ads + SEO built to grow local businesses
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">
-                We help Pittsburgh businesses improve their online presence with better websites, hosting guidance, and smarter Google Ads + SEO so they can attract more qualified local customers.
+                We help Pittsburgh businesses win more qualified leads with better websites, hosting guidance, and smarter search visibility.
               </p>
               <div className="mt-8 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
                 {stats.map((item) => (
@@ -398,14 +398,21 @@ export default function PittsburghAgencySite() {
                 <button
                   key={service.key}
                   onClick={() => switchPage(service.key)}
-                  className="group relative overflow-hidden rounded-[2rem] border border-slate-700 bg-slate-800/90 p-7 text-left shadow-sm transition hover:shadow-xl"
+                  className={`group relative overflow-hidden rounded-[2rem] border p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${
+                    service.key === 'websites'
+                      ? 'border-blue-500/30 bg-[linear-gradient(180deg,rgba(14,165,233,0.16),rgba(15,23,42,0.92))]'
+                      : 'border-orange-400/30 bg-[linear-gradient(180deg,rgba(249,115,22,0.16),rgba(15,23,42,0.92))]'
+                  }`}
                 >
                   <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${service.gradient}`} />
-                  <div className="inline-flex text-slate-200">
+                  <div className={`inline-flex rounded-2xl p-3 ${service.key === 'websites' ? 'bg-blue-500/15 text-blue-100' : 'bg-orange-500/15 text-orange-100'}`}>
                     <Icon className="h-7 w-7 stroke-[1.75]" />
                   </div>
+                  <div className={`mt-5 inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${service.key === 'websites' ? 'bg-blue-500/15 text-blue-200' : 'bg-orange-500/15 text-orange-200'}`}>
+                    {service.key === 'websites' ? 'Build + Hosting' : 'Traffic + Visibility'}
+                  </div>
                   <h3 className="mt-5 text-2xl font-semibold text-white">{service.title}</h3>
-                  <p className="mt-3 leading-7 text-slate-300">{service.text}</p>
+                  <p className="mt-3 max-w-md leading-7 text-slate-300">{service.text}</p>
                   <div className="mt-5 inline-flex items-center gap-2 font-semibold text-white">
                     Learn more <ChevronRight className="h-4 w-4 transition group-hover:translate-x-1" />
                   </div>
@@ -895,7 +902,7 @@ export default function PittsburghAgencySite() {
       return (
         <ServicePage
           title="Websites that help your business look professional and turn visitors into leads"
-          description="A strong website helps customers trust your business as soon as they land on it. We build fast, conversion-focused websites with clear messaging, hosting guidance, and the technical setup needed to support lead generation."
+          description="We build fast, conversion-focused websites with clear messaging, hosting guidance, and the technical setup needed to turn visits into leads."
           image="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1400&q=80"
           bullets={[
             'Mobile-friendly design built for local business credibility and conversions',
@@ -911,7 +918,7 @@ export default function PittsburghAgencySite() {
       return (
         <ServicePage
           title="Google Ads + SEO that work together to drive better local leads"
-          description="Your business should be visible wherever high-intent local customers are searching. We combine Google Ads for immediate reach with SEO improvements, technical content work, and AI/ML-assisted keyword analytics that strengthen long-term visibility and lead flow."
+          description="We combine Google Ads, SEO, and AI/ML-assisted keyword analytics to build stronger visibility, better lead flow, and better search coverage over time."
           image="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1400&q=80"
           bullets={[
             'Paid and organic keyword strategy aligned around the same local search intent',
