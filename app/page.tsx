@@ -42,7 +42,7 @@ type PricingPlan = {
 const pages: { key: PageKey; label: string }[] = [
   { key: 'home', label: 'Home' },
   { key: 'websites', label: 'Websites' },
-  { key: 'search-marketing', label: 'Search Marketing' },
+  { key: 'search-marketing', label: 'Google Ads + SEO' },
   { key: 'pricing', label: 'Pricing' },
   { key: 'faqs', label: 'FAQs' },
   { key: 'contact', label: 'Contact' },
@@ -108,7 +108,7 @@ const serviceCards = [
   },
   {
     key: 'search-marketing' as PageKey,
-    title: 'Search Marketing',
+    title: 'Google Ads + SEO',
     text: 'Google Ads and SEO working together to help your business get found, generate leads, and grow consistently.',
     icon: MousePointer2,
     gradient: 'from-orange-500 to-amber-400',
@@ -129,7 +129,7 @@ const pricingPlans: PricingPlan[] = [
     gradient: 'from-blue-500 to-sky-400',
   },
   {
-    name: 'Search Marketing Package',
+    name: 'Google Ads + SEO Package',
     description: 'Google Ads and SEO managed together so your business can win more visibility across paid and organic search.',
     features: [
       'Google Ads campaign setup and management',
@@ -143,10 +143,10 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     name: 'Full Growth Bundle',
-    description: 'Website and search marketing working together for maximum online growth.',
+    description: 'Website and Google Ads + SEO working together for maximum online growth.',
     features: [
       'Everything in Website Package',
-      'Everything in Search Marketing Package',
+      'Everything in Google Ads + SEO Package',
       'Priority support',
       'Best overall value',
     ],
@@ -430,7 +430,7 @@ export default function PittsburghAgencySite() {
                 <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
                   <h3 className="text-2xl font-semibold text-white md:text-3xl">Practical marketing for local businesses</h3>
                   <p className="mt-2 max-w-lg text-white/85">
-                    Clean websites and search marketing that help bring in more calls, inquiries, and customers.
+                    Clean websites and Google Ads + SEO that help bring in more calls, inquiries, and customers.
                   </p>
                 </div>
               </div>
@@ -588,7 +588,7 @@ export default function PittsburghAgencySite() {
                 className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-400"
               >
                 <option>Website Creation</option>
-                <option>Search Marketing (Google Ads + SEO)</option>
+                <option>Google Ads + SEO</option>
                 <option>All of the above</option>
               </select>
               <textarea
@@ -771,7 +771,7 @@ export default function PittsburghAgencySite() {
                 className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-400"
               >
                 <option>Website Creation</option>
-                <option>Search Marketing (Google Ads + SEO)</option>
+                <option>Google Ads + SEO</option>
                 <option>Billing / Payments</option>
                 <option>General Question</option>
                 <option>Other</option>
@@ -881,7 +881,7 @@ export default function PittsburghAgencySite() {
                     value={invoiceService}
                     onChange={(e) => setInvoiceService(e.target.value)}
                     className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
-                    placeholder="e.g. Website + Search Marketing Package"
+                    placeholder="e.g. Website + Google Ads + SEO Package"
                   />
                 </div>
                 <div>
@@ -992,7 +992,7 @@ export default function PittsburghAgencySite() {
             'Mobile friendly design built for local business credibility',
             'Clear service pages that match what customers are searching for',
             'Simple layouts focused on calls, form submissions, and booked jobs',
-            'A polished online presence that supports your full search marketing strategy',
+            'A polished online presence that supports your full Google Ads + SEO strategy',
           ]}
         />
       );
@@ -1001,7 +1001,7 @@ export default function PittsburghAgencySite() {
     if (page === 'search-marketing') {
       return (
         <ServicePage
-          title="Search marketing that combines Google Ads and SEO to drive better local leads"
+          title="Google Ads + SEO that work together to drive better local leads"
           description="Your business should be visible wherever high-intent local customers are searching. We combine Google Ads for immediate reach with SEO improvements that strengthen your long-term visibility and lead flow."
           image="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1400&q=80"
           bullets={[
