@@ -327,10 +327,25 @@ export default function PittsburghAgencySite() {
         body: JSON.stringify(form),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') ?? '';
+      const rawBody = await response.text();
+      let data: { error?: string } | null = null;
+
+      if (contentType.includes('application/json') && rawBody) {
+        try {
+          data = JSON.parse(rawBody);
+        } catch {
+          data = null;
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(data?.error || 'Something went wrong. Please try again.');
+        throw new Error(
+          data?.error ||
+            (rawBody.startsWith('<!DOCTYPE') || rawBody.startsWith('<html')
+              ? 'The contact form hit a server error. Please try again in a moment.'
+              : 'Something went wrong. Please try again.')
+        );
       }
 
       setSubmitMessage('Your request was sent successfully. We will be in touch soon.');
