@@ -366,7 +366,7 @@ export default function PittsburghAgencySite() {
           <div className="relative grid items-center gap-12 py-16 md:py-24 lg:grid-cols-2">
             <div>
               <h1 className="text-5xl font-semibold leading-tight tracking-tight text-white md:text-6xl">
-                Websites and Google Ads + SEO built to grow local businesses
+                Transform Your Online Presence.
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">
                 We help Pittsburgh businesses win more qualified leads with better websites, hosting guidance, and smarter search visibility.
