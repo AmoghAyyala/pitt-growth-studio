@@ -8,6 +8,9 @@
       <stop offset="0%" stop-color="#3b82f6"/>
       <stop offset="100%" stop-color="#f97316"/>
     </linearGradient>
+    <filter id="wordmarkGlow" x="-10%" y="-30%" width="130%" height="180%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-color="#020617" flood-opacity="0.45"/>
+    </filter>
   </defs>
 
   <!-- === Icon: ascending growth bars + upward arrow === -->
@@ -33,9 +36,10 @@
     font-family="Arial, Helvetica, sans-serif"
     font-size="12"
     font-weight="600"
-    fill="#64748b"
+    fill="#cbd5e1"
     letter-spacing="3"
     text-rendering="geometricPrecision"
+    filter="url(#wordmarkGlow)"
   >PITTSBURGH</text>
 
   <!-- "Growth Studio" – bold display text -->
@@ -44,8 +48,9 @@
     font-family="Arial, Helvetica, sans-serif"
     font-size="22"
     font-weight="700"
-    fill="#0f172a"
+    fill="#f8fafc"
     letter-spacing="0.5"
     text-rendering="geometricPrecision"
+    filter="url(#wordmarkGlow)"
   >Growth Studio</text>
 </svg>

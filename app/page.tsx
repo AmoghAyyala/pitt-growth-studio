@@ -8,12 +8,11 @@ import {
   Monitor,
   MousePointer2,
   Menu,
-  Map,
   Star,
   X,
 } from 'lucide-react';
 
-type PageKey = 'home' | 'websites' | 'google-ads' | 'seo' | 'faqs' | 'book' | 'pricing' | 'invoice' | 'contact';
+type PageKey = 'home' | 'websites' | 'search-marketing' | 'faqs' | 'book' | 'pricing' | 'invoice' | 'contact';
 
 type ServicePageProps = {
   title: string;
@@ -43,8 +42,7 @@ type PricingPlan = {
 const pages: { key: PageKey; label: string }[] = [
   { key: 'home', label: 'Home' },
   { key: 'websites', label: 'Websites' },
-  { key: 'google-ads', label: 'Google Ads' },
-  { key: 'seo', label: 'SEO' },
+  { key: 'search-marketing', label: 'Search Marketing' },
   { key: 'pricing', label: 'Pricing' },
   { key: 'faqs', label: 'FAQs' },
   { key: 'contact', label: 'Contact' },
@@ -78,7 +76,7 @@ const faqs = [
   },
   {
     q: 'How do you help us show up higher on Google?',
-    a: 'We improve your local SEO with stronger website pages, better service area targeting, and clearer Google visibility.',
+    a: 'We combine Google Ads and local search optimization so your business can capture demand now while building stronger long-term visibility.',
   },
   {
     q: 'Do you only build websites or do you market them too?',
@@ -109,18 +107,11 @@ const serviceCards = [
     gradient: 'from-blue-500 to-sky-400',
   },
   {
-    key: 'google-ads' as PageKey,
-    title: 'Google Ads',
-    text: 'Targeted campaigns that put your business in front of people already searching for your services.',
+    key: 'search-marketing' as PageKey,
+    title: 'Search Marketing',
+    text: 'Google Ads and SEO working together to help your business get found, generate leads, and grow consistently.',
     icon: MousePointer2,
     gradient: 'from-orange-500 to-amber-400',
-  },
-  {
-    key: 'seo' as PageKey,
-    title: 'Local SEO',
-    text: 'Help your business show up higher on Google and Maps when local customers search for your services.',
-    icon: Map,
-    gradient: 'from-slate-500 to-slate-300',
   },
 ];
 
@@ -138,37 +129,24 @@ const pricingPlans: PricingPlan[] = [
     gradient: 'from-blue-500 to-sky-400',
   },
   {
-    name: 'Google Ads Setup',
-    description: 'Targeted ad campaigns that put your business in front of people already searching for you.',
+    name: 'Search Marketing Package',
+    description: 'Google Ads and SEO managed together so your business can win more visibility across paid and organic search.',
     features: [
-      'Keyword research & selection',
-      'Ad copy for your services',
-      'Campaign & bid setup',
-      'Conversion tracking',
-      'Landing page recommendations',
+      'Google Ads campaign setup and management',
+      'Local keyword targeting across paid and organic search',
+      'Ad copy, landing page, and conversion improvements',
+      'Google Business Profile and on-page SEO support',
+      'Performance reporting focused on leads and calls',
     ],
     gradient: 'from-orange-500 to-amber-400',
     popular: true,
   },
   {
-    name: 'Local SEO Package',
-    description: 'Improve your visibility in Google and Maps so local customers can find your business.',
-    features: [
-      'Google Business Profile optimization',
-      'On-page SEO for key pages',
-      'Local keyword targeting',
-      'Citation building',
-      'Performance report',
-    ],
-    gradient: 'from-slate-500 to-slate-300',
-  },
-  {
     name: 'Full Growth Bundle',
-    description: 'Website, Google Ads, and SEO working together for maximum online growth.',
+    description: 'Website and search marketing working together for maximum online growth.',
     features: [
       'Everything in Website Package',
-      'Everything in Google Ads Setup',
-      'Everything in Local SEO Package',
+      'Everything in Search Marketing Package',
       'Priority support',
       'Best overall value',
     ],
@@ -452,7 +430,7 @@ export default function PittsburghAgencySite() {
                 <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
                   <h3 className="text-2xl font-semibold text-white md:text-3xl">Practical marketing for local businesses</h3>
                   <p className="mt-2 max-w-lg text-white/85">
-                    Clean websites, better visibility on Google, and Google Ads that help bring in more calls, inquiries, and customers.
+                    Clean websites and search marketing that help bring in more calls, inquiries, and customers.
                   </p>
                 </div>
               </div>
@@ -463,7 +441,7 @@ export default function PittsburghAgencySite() {
 
       <section className="py-8 md:py-12">
         <Section>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
             {serviceCards.map((service) => {
               const Icon = service.icon;
               return (
@@ -501,8 +479,8 @@ export default function PittsburghAgencySite() {
             <div>
               <h2 className="text-4xl font-semibold tracking-tight text-white">Why businesses choose us</h2>
               <div className="mt-6 space-y-5 text-slate-200">
-                <div className="flex gap-3"><span className="mt-[10px] h-2 w-2 shrink-0 rounded-full bg-blue-400" /><p className="leading-7">We help businesses show up higher when local customers search for the services they offer.</p></div>
-                <div className="flex gap-3"><span className="mt-[10px] h-2 w-2 shrink-0 rounded-full bg-blue-400" /><p className="leading-7">We create Google Ads that are more targeted, so your budget goes toward people who are actually looking for what you do.</p></div>
+                <div className="flex gap-3"><span className="mt-[10px] h-2 w-2 shrink-0 rounded-full bg-blue-400" /><p className="leading-7">We help businesses show up across paid and organic search when local customers are actively looking for their services.</p></div>
+                <div className="flex gap-3"><span className="mt-[10px] h-2 w-2 shrink-0 rounded-full bg-blue-400" /><p className="leading-7">We combine ad targeting and SEO improvements so your budget supports both short-term lead flow and long-term visibility.</p></div>
                 <div className="flex gap-3"><span className="mt-[10px] h-2 w-2 shrink-0 rounded-full bg-blue-400" /><p className="leading-7">We design websites that make your business look trustworthy and make it easier for visitors to reach out.</p></div>
                 <div className="flex gap-3"><span className="mt-[10px] h-2 w-2 shrink-0 rounded-full bg-blue-400" /><p className="leading-7">We focus on what matters most to local businesses: better visibility, stronger reviews, and more real clients.</p></div>
               </div>
@@ -610,8 +588,7 @@ export default function PittsburghAgencySite() {
                 className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-400"
               >
                 <option>Website Creation</option>
-                <option>Google Ads</option>
-                <option>Local SEO</option>
+                <option>Search Marketing (Google Ads + SEO)</option>
                 <option>All of the above</option>
               </select>
               <textarea
@@ -794,8 +771,7 @@ export default function PittsburghAgencySite() {
                 className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-400"
               >
                 <option>Website Creation</option>
-                <option>Google Ads</option>
-                <option>Local SEO</option>
+                <option>Search Marketing (Google Ads + SEO)</option>
                 <option>Billing / Payments</option>
                 <option>General Question</option>
                 <option>Other</option>
@@ -905,7 +881,7 @@ export default function PittsburghAgencySite() {
                     value={invoiceService}
                     onChange={(e) => setInvoiceService(e.target.value)}
                     className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
-                    placeholder="e.g. Website + Local SEO Package"
+                    placeholder="e.g. Website + Search Marketing Package"
                   />
                 </div>
                 <div>
@@ -1016,39 +992,23 @@ export default function PittsburghAgencySite() {
             'Mobile friendly design built for local business credibility',
             'Clear service pages that match what customers are searching for',
             'Simple layouts focused on calls, form submissions, and booked jobs',
-            'A polished online presence that supports both SEO and Google Ads performance',
+            'A polished online presence that supports your full search marketing strategy',
           ]}
         />
       );
     }
 
-    if (page === 'google-ads') {
+    if (page === 'search-marketing') {
       return (
         <ServicePage
-          title="Google Ads that put your business in front of the right people"
-          description="Google Ads can put your business in front of people who are already searching for your service. We build targeted campaigns that help bring in better traffic and more real customers."
+          title="Search marketing that combines Google Ads and SEO to drive better local leads"
+          description="Your business should be visible wherever high-intent local customers are searching. We combine Google Ads for immediate reach with SEO improvements that strengthen your long-term visibility and lead flow."
           image="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1400&q=80"
           bullets={[
-            'Campaigns built around buyer intent and local service searches',
-            'Ad messaging designed to attract clicks from the right prospects',
-            'Landing experience aligned to improve conversions',
-            'A focus on calls, leads, and paying clients instead of vanity metrics',
-          ]}
-        />
-      );
-    }
-
-    if (page === 'seo') {
-      return (
-        <ServicePage
-          title="Show up higher on Google when local customers search for your business"
-          description="Strong local SEO helps your business appear more often when people search for the services you provide. We help improve your visibility so you are easier to find and more likely to win local business."
-          image="https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?auto=format&fit=crop&w=1400&q=80"
-          bullets={[
-            'Local search optimization for your business categories and service areas',
-            'Website improvements that support better visibility in Google results',
-            'Content and page structure aligned to what customers actually search',
-            'A stronger online footprint that supports long-term lead generation',
+            'Paid and organic keyword strategy aligned around the same local search intent',
+            'Google Ads campaigns built to generate qualified calls and form submissions',
+            'SEO improvements across your website, pages, and business profile',
+            'Reporting focused on lead quality, search visibility, and actual business growth',
           ]}
         />
       );
@@ -1067,7 +1027,7 @@ export default function PittsburghAgencySite() {
       <header className="sticky top-0 z-50 border-b border-slate-700/80 bg-slate-900/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <button onClick={() => switchPage('home')} className="text-left">
-            <img src="/logo.svg" alt="Pittsburgh Growth Studio" className="h-10 w-auto" />
+            <img src="/logo.svg" alt="Pittsburgh Growth Studio" className="h-11 w-auto" />
           </button>
 
           <nav className="hidden items-center gap-6 lg:flex">
