@@ -1067,8 +1067,7 @@ export default function PittsburghAgencySite() {
       <header className="sticky top-0 z-50 border-b border-slate-700/80 bg-slate-900/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <button onClick={() => switchPage('home')} className="text-left">
-            <div className="text-xl font-semibold tracking-tight text-white md:text-2xl">Pittsburgh Growth Studio</div>
-            <div className="text-sm text-slate-400">Websites, Google Ads, and SEO for local businesses</div>
+            <img src="/logo.svg" alt="Pittsburgh Growth Studio" className="h-10 w-auto" />
           </button>
 
           <nav className="hidden items-center gap-6 lg:flex">
