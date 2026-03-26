@@ -36,7 +36,6 @@ type PricingPlan = {
   features: string[];
   gradient: string;
   popular?: boolean;
-  bundle?: boolean;
 };
 
 const pages: { key: PageKey; label: string }[] = [
@@ -140,18 +139,6 @@ const pricingPlans: PricingPlan[] = [
     ],
     gradient: 'from-orange-500 to-amber-400',
     popular: true,
-  },
-  {
-    name: 'Full Growth Bundle',
-    description: 'Website and Google Ads + SEO working together for maximum online growth.',
-    features: [
-      'Everything in Website Package',
-      'Everything in Google Ads + SEO Package',
-      'Priority support',
-      'Best overall value',
-    ],
-    gradient: 'from-blue-600 to-orange-400',
-    bundle: true,
   },
 ];
 
@@ -642,7 +629,7 @@ export default function PittsburghAgencySite() {
             Every business is different. Reach out and we&apos;ll put together a quote based on your specific goals.
           </p>
         </div>
-        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
           {pricingPlans.map((plan) => (
             <div
               key={plan.name}
@@ -653,9 +640,6 @@ export default function PittsburghAgencySite() {
               <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${plan.gradient}`} />
               {plan.popular && (
                 <div className="mb-3 inline-flex rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-300">Most Popular</div>
-              )}
-              {plan.bundle && (
-                <div className="mb-3 inline-flex rounded-full bg-orange-500/20 px-3 py-1 text-xs font-semibold text-orange-300">Best Value</div>
               )}
               <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
               <p className="mt-2 text-sm leading-6 text-slate-400">{plan.description}</p>
