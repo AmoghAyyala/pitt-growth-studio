@@ -1,14 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import Stripe from 'stripe';
 import { Resend } from 'resend';
+import { getClientIp, isRateLimited, isSameOriginRequest, jsonNoStore, verifySecret } from '../_lib/security';
 
 const MAX_BODY_BYTES = 10 * 1024;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ADMIN_ROUTE_LIMIT = 5;
+const ADMIN_ROUTE_WINDOW = 15 * 60 * 1000;
 
 export async function POST(request: NextRequest) {
   const contentLength = request.headers.get('content-length');
   if (contentLength && parseInt(contentLength) > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: 'Request too large.' }, { status: 413 });
+    return jsonNoStore({ error: 'Request too large.' }, { status: 413 });
+  }
+
+  if (!isSameOriginRequest(request)) {
+    return jsonNoStore({ error: 'Invalid request origin.' }, { status: 403 });
+  }
+
+  const ip = getClientIp(request);
+  if (isRateLimited(`send-invoice:${ip}`, ADMIN_ROUTE_LIMIT, ADMIN_ROUTE_WINDOW)) {
+    return jsonNoStore({ error: 'Too many requests. Please try again later.' }, { status: 429 });
   }
 
   const stripeKey = process.env.STRIPE_SECRET_KEY;
@@ -16,7 +28,7 @@ export async function POST(request: NextRequest) {
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!stripeKey || !resendKey) {
-    return NextResponse.json({ error: 'Payment or email service not configured.' }, { status: 500 });
+    return jsonNoStore({ error: 'Payment or email service not configured.' }, { status: 500 });
   }
 
   try {
@@ -24,28 +36,28 @@ export async function POST(request: NextRequest) {
     const { clientName, clientEmail, serviceDescription, upfrontAmount, monthlyAmount, password, checkOnly } = body;
 
     // Admin password gate
-    if (!adminPassword || password !== adminPassword) {
-      return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
+    if (!adminPassword || typeof password !== 'string' || !verifySecret(password, adminPassword)) {
+      return jsonNoStore({ error: 'Invalid password.' }, { status: 401 });
     }
 
     // Password-only validation check (used by the unlock flow — no Stripe calls)
     if (checkOnly === true) {
-      return NextResponse.json({ ok: true });
+      return jsonNoStore({ ok: true });
     }
 
     if (!clientName || !clientEmail) {
-      return NextResponse.json({ error: 'Client name and email are required.' }, { status: 400 });
+      return jsonNoStore({ error: 'Client name and email are required.' }, { status: 400 });
     }
 
     if (!EMAIL_REGEX.test(String(clientEmail))) {
-      return NextResponse.json({ error: 'Invalid client email address.' }, { status: 400 });
+      return jsonNoStore({ error: 'Invalid client email address.' }, { status: 400 });
     }
 
     const upfront = parseFloat(upfrontAmount) || 0;
     const monthly = parseFloat(monthlyAmount) || 0;
 
     if (upfront <= 0 && monthly <= 0) {
-      return NextResponse.json({ error: 'Please enter a valid upfront or monthly amount.' }, { status: 400 });
+      return jsonNoStore({ error: 'Please enter a valid upfront or monthly amount.' }, { status: 400 });
     }
 
     const stripe = new Stripe(stripeKey);
@@ -128,9 +140,9 @@ export async function POST(request: NextRequest) {
       text: lines.join('\n'),
     });
 
-    return NextResponse.json({ ok: true, upfrontUrl, monthlyUrl });
+    return jsonNoStore({ ok: true, upfrontUrl, monthlyUrl });
   } catch (error) {
     console.error('[send-invoice]', error);
-    return NextResponse.json({ error: 'Failed to send invoice.' }, { status: 500 });
+    return jsonNoStore({ error: 'Failed to send invoice.' }, { status: 500 });
   }
 }

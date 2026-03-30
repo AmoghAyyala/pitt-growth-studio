@@ -1,22 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { Resend } from 'resend';
+import { getClientIp, isRateLimited, isSameOriginRequest, jsonNoStore } from '../_lib/security';
 
 // Security feature 1: Rate limiting (max 5 submissions per IP per minute)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 5;
 const RATE_WINDOW = 60 * 1000;
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW });
-    return false;
-  }
-  if (entry.count >= RATE_LIMIT) return true;
-  entry.count++;
-  return false;
-}
 
 // Security feature 2: HTML sanitization (strip tags to prevent XSS)
 function stripHtml(str: string): string {
@@ -35,17 +23,21 @@ const MAX_BODY_BYTES = 10 * 1024;
 export async function POST(request: NextRequest) {
   const contentLength = request.headers.get('content-length');
   if (contentLength && parseInt(contentLength) > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: 'Request too large.' }, { status: 413 });
+    return jsonNoStore({ error: 'Request too large.' }, { status: 413 });
   }
 
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-  if (isRateLimited(ip)) {
-    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  if (!isSameOriginRequest(request)) {
+    return jsonNoStore({ error: 'Invalid request origin.' }, { status: 403 });
+  }
+
+  const ip = getClientIp(request);
+  if (isRateLimited(`contact:${ip}`, RATE_LIMIT, RATE_WINDOW)) {
+    return jsonNoStore({ error: 'Too many requests. Please try again later.' }, { status: 429 });
   }
 
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
-    return NextResponse.json({ error: 'Email service is not configured.' }, { status: 500 });
+    return jsonNoStore({ error: 'Email service is not configured.' }, { status: 500 });
   }
 
   const resend = new Resend(resendKey);
@@ -55,15 +47,15 @@ export async function POST(request: NextRequest) {
 
     // Security feature 6: Honeypot trap — bots fill hidden fields, humans don't
     if (honeypot) {
-      return NextResponse.json({ ok: true }); // Silently discard bot submissions
+      return jsonNoStore({ ok: true });
     }
 
     if (!name || !businessName || !email || !message) {
-      return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
+      return jsonNoStore({ error: 'Missing required fields.' }, { status: 400 });
     }
 
     if (!EMAIL_REGEX.test(String(email))) {
-      return NextResponse.json({ error: 'Invalid email address.' }, { status: 400 });
+      return jsonNoStore({ error: 'Invalid email address.' }, { status: 400 });
     }
 
     if (
@@ -72,7 +64,7 @@ export async function POST(request: NextRequest) {
       String(email).length > MAX_LENGTHS.email ||
       String(message).length > MAX_LENGTHS.message
     ) {
-      return NextResponse.json({ error: 'One or more fields exceed the maximum allowed length.' }, { status: 400 });
+      return jsonNoStore({ error: 'One or more fields exceed the maximum allowed length.' }, { status: 400 });
     }
 
     const safeName = stripHtml(String(name));
@@ -96,9 +88,9 @@ ${safeMessage}
       `.trim(),
     });
 
-    return NextResponse.json({ ok: true });
+    return jsonNoStore({ ok: true });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: 'Failed to send email.' }, { status: 500 });
+    return jsonNoStore({ error: 'Failed to send email.' }, { status: 500 });
   }
 }
