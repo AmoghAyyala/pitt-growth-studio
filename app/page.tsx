@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 
-type PageKey = 'home' | 'websites' | 'search-marketing' | 'faqs' | 'book' | 'contact';
+type PageKey = 'home' | 'websites' | 'search-marketing' | 'faqs' | 'book' | 'invoice' | 'contact';
 
 type ServicePageProps = {
   title: string;
@@ -195,6 +195,105 @@ export default function PittsburghAgencySite() {
     message: '',
     honeypot: '',
   });
+
+  // Invoice (admin) state
+  const [invoiceUnlocked, setInvoiceUnlocked] = useState(false);
+  const [invoicePassword, setInvoicePassword] = useState('');
+  const [invoicePasswordError, setInvoicePasswordError] = useState('');
+  const [invoiceClientName, setInvoiceClientName] = useState('');
+  const [invoiceClientEmail, setInvoiceClientEmail] = useState('');
+  const [invoiceService, setInvoiceService] = useState('');
+  const [invoiceUpfront, setInvoiceUpfront] = useState('');
+  const [invoiceMonthly, setInvoiceMonthly] = useState('');
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [invoiceSuccess, setInvoiceSuccess] = useState('');
+  const [invoiceError, setInvoiceError] = useState('');
+  const [invoiceUpfrontUrl, setInvoiceUpfrontUrl] = useState('');
+  const [invoiceMonthlyUrl, setInvoiceMonthlyUrl] = useState('');
+
+  // Refund state
+  const [refundPaymentId, setRefundPaymentId] = useState('');
+  const [refundLoading, setRefundLoading] = useState(false);
+  const [refundSuccess, setRefundSuccess] = useState('');
+  const [refundError, setRefundError] = useState('');
+
+  const handleInvoiceUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInvoicePasswordError('');
+    // Validate password only — no Stripe calls
+    const res = await fetch('/api/send-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: invoicePassword, checkOnly: true }),
+    });
+    if (res.status === 401) {
+      setInvoicePasswordError('Incorrect password.');
+    } else {
+      setInvoiceUnlocked(true);
+    }
+  };
+
+  const handleSendInvoice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInvoiceError('');
+    setInvoiceSuccess('');
+    setInvoiceUpfrontUrl('');
+    setInvoiceMonthlyUrl('');
+    setInvoiceLoading(true);
+    try {
+      const res = await fetch('/api/send-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: invoicePassword,
+          clientName: invoiceClientName,
+          clientEmail: invoiceClientEmail,
+          serviceDescription: invoiceService,
+          upfrontAmount: invoiceUpfront,
+          monthlyAmount: invoiceMonthly,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to send invoice.');
+      setInvoiceSuccess(`Payment link(s) sent to ${invoiceClientEmail}!`);
+      if (data.upfrontUrl) setInvoiceUpfrontUrl(data.upfrontUrl);
+      if (data.monthlyUrl) setInvoiceMonthlyUrl(data.monthlyUrl);
+      setInvoiceClientName('');
+      setInvoiceClientEmail('');
+      setInvoiceService('');
+      setInvoiceUpfront('');
+      setInvoiceMonthly('');
+    } catch (err) {
+      setInvoiceError(err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
+  const handleRefund = async () => {
+    setRefundError('');
+    setRefundSuccess('');
+    if (!refundPaymentId.trim()) {
+      setRefundError('Please enter a Payment Intent ID.');
+      return;
+    }
+    setRefundLoading(true);
+    try {
+      const res = await fetch('/api/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: invoicePassword, paymentIntentId: refundPaymentId.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Refund failed.');
+      setRefundSuccess(`Refund issued successfully (ID: ${data.refundId})`);
+      setRefundPaymentId('');
+    } catch (err) {
+      setRefundError(err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setRefundLoading(false);
+    }
+  };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -604,6 +703,7 @@ export default function PittsburghAgencySite() {
               >
                 <option>Website Creation</option>
                 <option>Google Ads + SEO</option>
+                <option>Billing / Payments</option>
                 <option>General Question</option>
                 <option>Other</option>
               </select>
@@ -650,6 +750,168 @@ export default function PittsburghAgencySite() {
     </Section>
   );
 
+  const InvoicePage = () => (
+    <Section>
+      <section className="py-16 md:py-20">
+        <div className="mx-auto max-w-lg">
+          <h1 className="text-5xl font-semibold tracking-tight text-white">Send Invoice</h1>
+          <p className="mt-4 text-lg leading-8 text-slate-300">
+            Create a Stripe payment link and email it directly to a client.
+          </p>
+
+          {!invoiceUnlocked ? (
+            <form onSubmit={handleInvoiceUnlock} className="mt-10 rounded-[2rem] border border-slate-700 bg-slate-800/90 p-8 shadow-xl">
+              <label className="mb-1.5 block text-sm font-medium text-slate-300">Admin password</label>
+              <input
+                type="password"
+                value={invoicePassword}
+                onChange={(e) => setInvoicePassword(e.target.value)}
+                autoComplete="current-password"
+                className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                placeholder="Enter password"
+                required
+              />
+              {invoicePasswordError && (
+                <p className="mt-2 text-sm text-red-400">{invoicePasswordError}</p>
+              )}
+              <button
+                type="submit"
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-orange-400 px-6 py-3.5 font-semibold text-white transition hover:opacity-95"
+              >
+                Unlock <ArrowRight className="h-4 w-4" />
+              </button>
+            </form>
+          ) : (
+            <>
+            <form onSubmit={handleSendInvoice} className="mt-10 rounded-[2rem] border border-slate-700 bg-slate-800/90 p-8 shadow-xl">
+              <div className="grid gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">Client name <span className="text-red-400">*</span></label>
+                  <input
+                    value={invoiceClientName}
+                    onChange={(e) => setInvoiceClientName(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                    placeholder="e.g. Smith Roofing"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">Client email <span className="text-red-400">*</span></label>
+                  <input
+                    type="email"
+                    value={invoiceClientEmail}
+                    onChange={(e) => setInvoiceClientEmail(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                    placeholder="client@example.com"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">Service description</label>
+                  <input
+                    value={invoiceService}
+                    onChange={(e) => setInvoiceService(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                    placeholder="e.g. Website + Google Ads + SEO Package"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">Upfront fee ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={invoiceUpfront}
+                    onChange={(e) => setInvoiceUpfront(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">Monthly fee ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={invoiceMonthly}
+                    onChange={(e) => setInvoiceMonthly(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                    placeholder="0.00"
+                  />
+                </div>
+                {(parseFloat(invoiceUpfront) > 0 || parseFloat(invoiceMonthly) > 0) && (
+                  <div className="rounded-2xl border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm text-slate-300 space-y-1">
+                    {parseFloat(invoiceUpfront) > 0 && (
+                      <div>Initial deposit: <span className="font-semibold text-white">${parseFloat(invoiceUpfront).toFixed(2)}</span> <span className="text-slate-500">(charged once)</span></div>
+                    )}
+                    {parseFloat(invoiceMonthly) > 0 && (
+                      <div>Monthly retainer: <span className="font-semibold text-white">${parseFloat(invoiceMonthly).toFixed(2)}/mo</span> <span className="text-slate-500">(recurring)</span></div>
+                    )}
+                  </div>
+                )}
+                {invoiceError && (
+                  <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{invoiceError}</div>
+                )}
+                {invoiceSuccess && (
+                  <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-4 text-sm text-green-300 space-y-2">
+                    <p className="font-medium">{invoiceSuccess}</p>
+                    {invoiceUpfrontUrl && (
+                      <p>Deposit link: <a href={invoiceUpfrontUrl} target="_blank" rel="noopener noreferrer" className="underline break-all">{invoiceUpfrontUrl}</a></p>
+                    )}
+                    {invoiceMonthlyUrl && (
+                      <p>Monthly link: <a href={invoiceMonthlyUrl} target="_blank" rel="noopener noreferrer" className="underline break-all">{invoiceMonthlyUrl}</a></p>
+                    )}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={invoiceLoading}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-orange-400 px-6 py-3.5 font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {invoiceLoading ? 'Sending...' : 'Send Payment Link'} <ArrowRight className="h-4 w-4" />
+                </button>
+                <p className="text-center text-xs text-slate-500">A permanent Stripe payment link will be created and emailed to the client.</p>
+              </div>
+            </form>
+
+            {/* Refund a payment */}
+            <div className="mt-8 rounded-[2rem] border border-slate-700 bg-slate-800/90 p-8 shadow-xl">
+              <h2 className="text-xl font-semibold text-white">Refund a Payment</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Issue a full refund within the 2-week guarantee window. Find the Payment Intent ID in your Stripe dashboard under Payments (starts with <span className="font-mono text-slate-300">pi_</span>).
+              </p>
+              <div className="mt-4 grid gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">Payment Intent ID</label>
+                  <input
+                    value={refundPaymentId}
+                    onChange={(e) => setRefundPaymentId(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 font-mono text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
+                    placeholder="pi_3..."
+                  />
+                </div>
+                {refundError && (
+                  <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{refundError}</div>
+                )}
+                {refundSuccess && (
+                  <div className="rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300">{refundSuccess}</div>
+                )}
+                <button
+                  onClick={handleRefund}
+                  disabled={refundLoading}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-600 px-6 py-3.5 font-semibold text-slate-200 transition hover:border-red-400 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {refundLoading ? 'Processing...' : 'Issue Full Refund'} <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            </>
+          )}
+        </div>
+      </section>
+    </Section>
+  );
+
   const currentPage = () => {
     if (page === 'websites') {
       return (
@@ -685,6 +947,7 @@ export default function PittsburghAgencySite() {
     }
 
     if (page === 'contact') return ContactPage();
+    if (page === 'invoice') return InvoicePage();
     if (page === 'faqs') return FAQPage();
     if (page === 'book') return BookPage();
     return HomePage();

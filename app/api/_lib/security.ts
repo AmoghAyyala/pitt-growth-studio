@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RateLimitEntry = {
@@ -37,6 +38,12 @@ export function isRateLimited(key: string, limit: number, windowMs: number): boo
 
   entry.count += 1;
   return false;
+}
+
+export function verifySecret(provided: string, expected: string): boolean {
+  const providedHash = createHash('sha256').update(provided).digest();
+  const expectedHash = createHash('sha256').update(expected).digest();
+  return timingSafeEqual(providedHash, expectedHash);
 }
 
 export function jsonNoStore(body: unknown, init?: ResponseInit) {
