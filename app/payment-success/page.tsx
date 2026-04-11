@@ -16,7 +16,7 @@ export default function PaymentSuccess() {
         <p className="mt-2 text-slate-400">Check your email for a confirmation receipt from Stripe.</p>
         <Link
           href="/"
-          className="mt-8 inline-block rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-orange-400 px-6 py-3 font-semibold text-white transition hover:opacity-95"
+          className="mt-8 inline-block rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-blue-400 px-6 py-3 font-semibold text-white transition hover:opacity-95"
         >
           Back to Home
         </Link>
