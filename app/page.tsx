@@ -368,28 +368,38 @@ export default function PittsburghAgencySite() {
           <FadeIn>
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div>
-                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700">
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" /> Pittsburgh&apos;s Growth Partner
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
+                  <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-block h-2 w-2 rounded-full bg-emerald-500" /></span> Accepting new clients this month
                 </div>
                 <h1 className="text-[48px] font-bold leading-[1.08] tracking-[-0.02em] text-gray-900 md:text-[56px]">
-                  We build websites that generate real leads for Pittsburgh businesses
+                  Get more calls, more clients, more revenue.
                 </h1>
-                <p className="mt-6 max-w-lg text-lg leading-[1.6] text-gray-600">
-                  Conversion-focused websites, SEO, and Google Ads that help local businesses get found, build trust, and grow.
+                <p className="mt-6 max-w-lg text-[18px] leading-[1.65] text-gray-600">
+                  We build high-converting websites and run Google Ads + SEO campaigns that put Pittsburgh businesses in front of customers <span className="font-semibold text-gray-900">ready to buy</span>.
                 </p>
-                <div className="mt-8 flex flex-wrap gap-4">
+                <div className="mt-8 flex flex-wrap items-center gap-4">
                   <button
                     onClick={() => switchPage('book')}
-                    className={btnPrimary}
+                    className="group inline-flex items-center justify-center gap-2 rounded-[12px] bg-gradient-to-r from-blue-600 to-blue-700 px-7 py-4 text-[16px] font-semibold text-white shadow-lg shadow-blue-600/25 transition-all duration-200 hover:shadow-xl hover:shadow-blue-600/30 hover:brightness-110"
                   >
-                    Get More Leads <ArrowRight className="h-4 w-4" />
+                    Get Your Free Growth Plan <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </button>
                   <button
                     onClick={() => switchPage('book')}
-                    className={btnAccent}
+                    className="inline-flex items-center justify-center gap-2 rounded-[12px] border-2 border-gray-200 bg-white px-6 py-3.5 text-[15px] font-semibold text-gray-700 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
                   >
-                    Book a Free Website Audit
+                    See How It Works
                   </button>
+                </div>
+                <div className="mt-6 flex items-center gap-3">
+                  <div className="flex -space-x-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 ring-2 ring-white">M</div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-700 ring-2 ring-white">S</div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700 ring-2 ring-white">J</div>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    <span className="font-semibold text-gray-900">50+ Pittsburgh businesses</span> trust us to grow their leads
+                  </div>
                 </div>
               </div>
               <div className="relative">
@@ -400,10 +410,21 @@ export default function PittsburghAgencySite() {
                     alt="Local business team meeting with digital marketing reports"
                     className="h-[440px] w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/50 via-transparent to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                    <p className="text-lg font-semibold text-white">Practical marketing for local businesses</p>
-                    <p className="mt-1 text-sm text-white/80">Clean websites + Google Ads + SEO, powered by data.</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-gray-900/5 to-transparent" />
+                  {/* Floating social proof card */}
+                  <div className="absolute bottom-5 left-5 right-5 rounded-[12px] border border-white/20 bg-white/90 p-4 backdrop-blur-md md:left-6 md:right-6">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                        <TrendingUp className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">+200% average lead increase</p>
+                        <p className="text-xs text-gray-500">Across our Pittsburgh client portfolio</p>
+                      </div>
+                      <div className="ml-auto flex items-center gap-0.5 text-amber-400">
+                        {Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -416,10 +437,10 @@ export default function PittsburghAgencySite() {
       <section className="border-y border-gray-100 bg-gray-50 py-5">
         <Section>
           <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-2 text-sm font-medium text-gray-500">
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-blue-600" /> No long-term contracts</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-blue-600" /> Free website audit</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-blue-600" /> Pittsburgh-based team</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-blue-600" /> Proven lead generation</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> No contracts — cancel anytime</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Free website &amp; SEO audit</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Results in 30 days or less</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> 4.9&#9733; from 50+ businesses</span>
           </div>
         </Section>
       </section>
@@ -541,27 +562,35 @@ export default function PittsburghAgencySite() {
       <section className="bg-white py-20">
         <Section>
           <FadeIn>
-            <div className="overflow-hidden rounded-[14px] bg-gradient-to-r from-blue-600 to-blue-700 shadow-xl">
+            <div className="overflow-hidden rounded-[14px] bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 shadow-2xl">
               <div className="grid items-center md:grid-cols-2">
-                <div className="p-10 md:p-12">
-                  <h3 className="text-[32px] font-semibold tracking-[-0.01em] text-white">Ready to get started?</h3>
-                  <p className="mt-4 max-w-md leading-[1.6] text-blue-100">
-                    Share a few details about your business and goals, and we&apos;ll outline the next steps.
+                <div className="p-10 md:p-14">
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-300">
+                    Limited availability
+                  </div>
+                  <h3 className="text-[36px] font-bold leading-[1.1] tracking-[-0.02em] text-white">Stop losing leads to your competitors.</h3>
+                  <p className="mt-4 max-w-md leading-[1.65] text-blue-200/80">
+                    Get a free, no-obligation growth plan showing exactly how we&apos;d increase your calls, leads, and revenue. Most clients see results within 30 days.
                   </p>
+                  <div className="mt-6 space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-blue-100/70"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Free website &amp; SEO audit included</div>
+                    <div className="flex items-center gap-2 text-sm text-blue-100/70"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Custom strategy — not a generic template</div>
+                    <div className="flex items-center gap-2 text-sm text-blue-100/70"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> No commitment required to get started</div>
+                  </div>
                   <div className="mt-8">
                     <button
                       onClick={() => switchPage('book')}
-                      className="inline-flex items-center gap-2 rounded-[12px] bg-white px-6 py-3 font-semibold text-blue-700 shadow-sm transition-all duration-200 hover:shadow-md"
+                      className="group inline-flex items-center gap-2 rounded-[12px] bg-white px-7 py-3.5 font-semibold text-gray-900 shadow-lg transition-all duration-200 hover:shadow-xl hover:bg-blue-50"
                     >
-                      Get Started <ArrowRight className="h-4 w-4" />
+                      Claim Your Free Growth Plan <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                     </button>
                   </div>
                 </div>
-                <div className="h-full min-h-[280px]">
+                <div className="h-full min-h-[320px]">
                   <img
                     src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1400&q=80"
                     alt="Analytics dashboard and growth charts"
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover opacity-80"
                   />
                 </div>
               </div>
