@@ -206,6 +206,248 @@ function FAQAccordion({ faqs }: { faqs: { q: string; a: string }[] }) {
   );
 }
 
+// Shared form styles (module-level so they're stable references)
+const INPUT_CLASS =
+  'w-full rounded-[10px] border border-[var(--border-subtle)] bg-[var(--bg-input)] px-4 py-3 text-[15px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] transition-colors duration-200 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20';
+const BTN_PRIMARY =
+  'inline-flex items-center justify-center gap-2 rounded-[10px] bg-[var(--accent)] px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_2px_12px_rgba(37,99,235,0.35)] transition-all duration-200 hover:bg-[var(--accent-hover)] hover:shadow-[0_4px_20px_rgba(37,99,235,0.45)] disabled:cursor-not-allowed disabled:opacity-60';
+const BTN_SECONDARY =
+  'inline-flex items-center justify-center gap-2 rounded-[10px] border border-[var(--border-subtle)] bg-transparent px-6 py-3.5 text-[15px] font-semibold text-[var(--text-primary)] transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)]';
+
+// Async form submission helper (shared by BookPage & ContactPage)
+async function submitContactForm(form: FormState): Promise<{ ok: boolean; message?: string; error?: string }> {
+  const response = await fetch('/api/contact', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(form),
+  });
+  const contentType = response.headers.get('content-type') ?? '';
+  const rawBody = await response.text();
+  let data: { error?: string } | null = null;
+  if (contentType.includes('application/json') && rawBody) {
+    try { data = JSON.parse(rawBody); } catch { data = null; }
+  }
+  if (!response.ok) {
+    return {
+      ok: false,
+      error:
+        data?.error ||
+        (rawBody.startsWith('<!DOCTYPE') || rawBody.startsWith('<html')
+          ? 'Server error. Please try again in a moment.'
+          : 'Something went wrong. Please try again.'),
+    };
+  }
+  return { ok: true };
+}
+
+// ─── BOOK PAGE ───────────────────────────────────────────────────────────────
+// Top-level component so it has stable identity — no remount on parent renders
+
+function BookPage({ onNavigate }: { onNavigate: (page: PageKey) => void }) {
+  const [form, setForm] = useState<FormState>({
+    name: '', businessName: '', email: '', service: 'Website Creation', message: '', honeypot: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitError, setSubmitError] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (form.honeypot) return;
+    setIsSubmitting(true);
+    setSubmitMessage('');
+    setSubmitError('');
+    const result = await submitContactForm(form);
+    if (result.ok) {
+      setSubmitMessage("Your request was sent! We'll be in touch soon.");
+      setForm({ name: '', businessName: '', email: '', service: 'Website Creation', message: '', honeypot: '' });
+    } else {
+      setSubmitError(result.error ?? 'Something went wrong. Please try again.');
+    }
+    setIsSubmitting(false);
+  };
+
+  return (
+    <section className="bg-[var(--bg-primary)] py-24">
+      <Section>
+        <FadeIn>
+          <div className="grid items-start gap-12 lg:grid-cols-2">
+            <div>
+              <SectionLabel>Get Started</SectionLabel>
+              <h1 className="mt-3 text-[clamp(36px,5vw,60px)] font-bold tracking-[-1px] text-[var(--text-primary)]">
+                Tell us about your business
+              </h1>
+              <p className="mt-4 max-w-lg text-lg leading-[1.75] text-[var(--text-secondary)]">
+                We&apos;ll review your website, Google presence, and current lead flow &mdash; then show you exactly what we&apos;d fix first.
+              </p>
+              <div className="mt-8 space-y-4">
+                {[
+                  'A clear picture of where your business stands online today',
+                  'Specific opportunities in Google Ads, SEO, and your website',
+                  'Practical next steps — no obligation to move forward',
+                ].map((text, idx) => (
+                  <div key={idx} className="flex gap-3 rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
+                    <p className="text-[14px] leading-[1.65] text-[var(--text-secondary)]">{text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-[16px] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-8 shadow-lg">
+              <h2 className="text-[20px] font-bold text-[var(--text-primary)]">Request a free audit</h2>
+              <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+                <input name="name" value={form.name} onChange={handleChange} className={INPUT_CLASS} placeholder="Your name" required />
+                <input name="businessName" value={form.businessName} onChange={handleChange} className={INPUT_CLASS} placeholder="Business name" required />
+                <input name="email" type="email" value={form.email} onChange={handleChange} className={INPUT_CLASS} placeholder="Email address" required />
+                <select name="service" value={form.service} onChange={handleChange} className={INPUT_CLASS}>
+                  <option>Website Creation</option>
+                  <option>Google Ads + SEO</option>
+                  <option>All of the above</option>
+                </select>
+                <textarea name="message" value={form.message} onChange={handleChange} className={`${INPUT_CLASS} min-h-[120px]`} placeholder="What's your biggest growth challenge right now?" required />
+                {/* Honeypot — hidden from real users, traps bots */}
+                <input name="honeypot" value={form.honeypot} onChange={handleChange} tabIndex={-1} aria-hidden="true" autoComplete="off" style={{ display: 'none' }} />
+                {submitMessage && (
+                  <div className="rounded-[10px] border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)]">
+                    {submitMessage}
+                  </div>
+                )}
+                {submitError && (
+                  <div className="rounded-[10px] border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                    {submitError}
+                  </div>
+                )}
+                <button type="submit" disabled={isSubmitting} className={BTN_PRIMARY}>
+                  {isSubmitting ? 'Sending...' : 'Send Request'}{' '}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
+            </div>
+          </div>
+        </FadeIn>
+      </Section>
+    </section>
+  );
+}
+
+// ─── CONTACT PAGE ─────────────────────────────────────────────────────────────
+// Top-level component so it has stable identity — no remount on parent renders
+
+function ContactPage({ onNavigate }: { onNavigate: (page: PageKey) => void }) {
+  const [form, setForm] = useState<FormState>({
+    name: '', businessName: '', email: '', service: 'Website Creation', message: '', honeypot: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitError, setSubmitError] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (form.honeypot) return;
+    setIsSubmitting(true);
+    setSubmitMessage('');
+    setSubmitError('');
+    const result = await submitContactForm(form);
+    if (result.ok) {
+      setSubmitMessage("Message sent! We'll follow up within one business day.");
+      setForm({ name: '', businessName: '', email: '', service: 'Website Creation', message: '', honeypot: '' });
+    } else {
+      setSubmitError(result.error ?? 'Something went wrong. Please try again.');
+    }
+    setIsSubmitting(false);
+  };
+
+  return (
+    <section className="bg-[var(--bg-primary)] py-24">
+      <Section>
+        <FadeIn>
+          <div className="grid items-start gap-12 lg:grid-cols-2">
+            <div>
+              <SectionLabel>Contact</SectionLabel>
+              <h1 className="mt-3 text-[clamp(36px,5vw,60px)] font-bold tracking-[-1px] text-[var(--text-primary)]">
+                Contact &amp; Support
+              </h1>
+              <p className="mt-4 max-w-lg text-lg leading-[1.75] text-[var(--text-secondary)]">
+                Questions about your website, ads, or anything else? We typically reply within one business day.
+              </p>
+              <div className="mt-10 space-y-4">
+                {([
+                  { icon: Mail, label: 'Email us', value: 'hello@pittgrowthstudio.com', href: 'mailto:hello@pittgrowthstudio.com', note: 'Response within 1 business day' },
+                  { icon: Clock, label: 'Support hours', value: 'Monday \u2013 Friday', href: undefined, note: '9:00 AM \u2013 6:00 PM ET' },
+                  { icon: MapPin, label: 'Based in', value: 'Pittsburgh, PA', href: undefined, note: 'Serving businesses across the greater Pittsburgh area' },
+                ] as { icon: React.ElementType; label: string; value: string; href?: string; note: string }[]).map(({ icon: Icon, label, value, href, note }) => (
+                  <div key={label} className="flex items-start gap-4 rounded-[14px] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[9px] border border-[var(--accent)]/20 bg-[var(--accent)]/10 text-[var(--accent)]">
+                      <Icon style={{ width: '18px', height: '18px' }} />
+                    </div>
+                    <div>
+                      <p className="text-[12px] text-[var(--text-muted)]">{label}</p>
+                      {href ? (
+                        <a href={href} className="mt-0.5 block font-semibold text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors">{value}</a>
+                      ) : (
+                        <p className="mt-0.5 font-semibold text-[var(--text-primary)]">{value}</p>
+                      )}
+                      <p className="mt-0.5 text-[13px] text-[var(--text-secondary)]">{note}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-6 text-[14px] text-[var(--text-secondary)]">
+                Looking for quick answers?{' '}
+                <button onClick={() => onNavigate('faqs')} className="font-medium text-[var(--accent)] underline underline-offset-2">
+                  Check our FAQs
+                </button>
+              </p>
+            </div>
+            <div className="rounded-[16px] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-8 shadow-lg">
+              <h2 className="text-[20px] font-bold text-[var(--text-primary)]">Send a message</h2>
+              <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+                <input name="name" value={form.name} onChange={handleChange} className={INPUT_CLASS} placeholder="Your name" required />
+                <input name="businessName" value={form.businessName} onChange={handleChange} className={INPUT_CLASS} placeholder="Business name" required />
+                <input name="email" type="email" value={form.email} onChange={handleChange} className={INPUT_CLASS} placeholder="Email address" required />
+                <select name="service" value={form.service} onChange={handleChange} className={INPUT_CLASS}>
+                  <option>Website Creation</option>
+                  <option>Google Ads + SEO</option>
+                  <option>Billing / Payments</option>
+                  <option>General Question</option>
+                  <option>Other</option>
+                </select>
+                <textarea name="message" value={form.message} onChange={handleChange} className={`${INPUT_CLASS} min-h-[130px]`} placeholder="How can we help?" required />
+                {/* Honeypot — hidden from real users, traps bots */}
+                <input name="honeypot" value={form.honeypot} onChange={handleChange} tabIndex={-1} aria-hidden="true" autoComplete="off" style={{ display: 'none' }} />
+                {submitMessage && (
+                  <div className="rounded-[10px] border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)]">
+                    {submitMessage}
+                  </div>
+                )}
+                {submitError && (
+                  <div className="rounded-[10px] border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                    {submitError}
+                  </div>
+                )}
+                <button type="submit" disabled={isSubmitting} className={BTN_PRIMARY}>
+                  {isSubmitting ? 'Sending...' : 'Send Message'}{' '}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
+            </div>
+          </div>
+        </FadeIn>
+      </Section>
+    </section>
+  );
+}
+
 // ─── SERVICE PAGE ────────────────────────────────────────────────────────────
 
 function ServicePage({ title, description, image, bullets }: ServicePageProps) {
@@ -243,14 +485,6 @@ function ServicePage({ title, description, image, bullets }: ServicePageProps) {
 export default function PittsburghAgencySite() {
   const [page, setPage] = useState<PageKey>('home');
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [form, setForm] = useState<FormState>({
-    name: '',
-    businessName: '',
-    email: '',
-    service: 'Website Creation',
-    message: '',
-    honeypot: '',
-  });
 
   // Invoice state
   const [invoiceUnlocked, setInvoiceUnlocked] = useState(false);
@@ -272,10 +506,6 @@ export default function PittsburghAgencySite() {
   const [refundLoading, setRefundLoading] = useState(false);
   const [refundSuccess, setRefundSuccess] = useState('');
   const [refundError, setRefundError] = useState('');
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState('');
-  const [submitError, setSubmitError] = useState('');
 
   const switchPage = (nextPage: PageKey) => {
     setPage(nextPage);
@@ -360,56 +590,6 @@ export default function PittsburghAgencySite() {
     }
   };
 
-  const handleInputChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (form.honeypot) return; // honeypot: bots fill this, humans don't
-    setIsSubmitting(true);
-    setSubmitMessage('');
-    setSubmitError('');
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const contentType = response.headers.get('content-type') ?? '';
-      const rawBody = await response.text();
-      let data: { error?: string } | null = null;
-      if (contentType.includes('application/json') && rawBody) {
-        try { data = JSON.parse(rawBody); } catch { data = null; }
-      }
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            (rawBody.startsWith('<!DOCTYPE') || rawBody.startsWith('<html')
-              ? 'Server error. Please try again in a moment.'
-              : 'Something went wrong. Please try again.')
-        );
-      }
-      setSubmitMessage('Your request was sent successfully. We\'ll be in touch soon.');
-      setForm({ name: '', businessName: '', email: '', service: 'Website Creation', message: '', honeypot: '' });
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Something went wrong. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Shared styles
-  const inputClass =
-    'w-full rounded-[10px] border border-[var(--border-subtle)] bg-[var(--bg-input)] px-4 py-3 text-[15px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] transition-colors duration-200 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20';
-  const btnPrimary =
-    'inline-flex items-center justify-center gap-2 rounded-[10px] bg-[var(--accent)] px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_2px_12px_rgba(37,99,235,0.35)] transition-all duration-200 hover:bg-[var(--accent-hover)] hover:shadow-[0_4px_20px_rgba(37,99,235,0.45)] disabled:cursor-not-allowed disabled:opacity-60';
-  const btnSecondary =
-    'inline-flex items-center justify-center gap-2 rounded-[10px] border border-[var(--border-subtle)] bg-transparent px-6 py-3.5 text-[15px] font-semibold text-[var(--text-primary)] transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)]';
-
   // ─── HOME ──────────────────────────────────────────────────────────────────
   const HomePage = () => (
     <>
@@ -444,14 +624,14 @@ export default function PittsburghAgencySite() {
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 <button
                   onClick={() => switchPage('book')}
-                  className={`${btnPrimary} group`}
+                  className={`${BTN_PRIMARY} group`}
                 >
                   Get a Free Growth Plan{' '}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </button>
                 <button
                   onClick={() => switchPage('faqs')}
-                  className={btnSecondary}
+                  className={BTN_SECONDARY}
                 >
                   See How It Works
                 </button>
@@ -798,7 +978,7 @@ export default function PittsburghAgencySite() {
               </p>
               <button
                 onClick={() => switchPage('contact')}
-                className={`mt-8 ${btnSecondary}`}
+                className={`mt-8 ${BTN_SECONDARY}`}
               >
                 Still have questions?
               </button>
@@ -832,12 +1012,12 @@ export default function PittsburghAgencySite() {
               <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                 <button
                   onClick={() => switchPage('book')}
-                  className={`${btnPrimary} group text-[16px] px-8 py-4`}
+                  className={`${BTN_PRIMARY} group text-[16px] px-8 py-4`}
                 >
                   Claim Your Free Audit{' '}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </button>
-                <a href="mailto:hello@pittgrowthstudio.com" className={`${btnSecondary} gap-2`}>
+                <a href="mailto:hello@pittgrowthstudio.com" className={`${BTN_SECONDARY} gap-2`}>
                   <Mail className="h-4 w-4" />
                   Email us directly
                 </a>
@@ -883,168 +1063,6 @@ export default function PittsburghAgencySite() {
     </section>
   );
 
-  // ─── BOOK PAGE ──────────────────────────────────────────────────────────────
-  const BookPage = () => (
-    <section className="bg-[var(--bg-primary)] py-24">
-      <Section>
-        <FadeIn>
-          <div className="grid items-start gap-12 lg:grid-cols-2">
-            <div>
-              <SectionLabel>Get Started</SectionLabel>
-              <h1 className="mt-3 text-[clamp(36px,5vw,60px)] font-bold tracking-[-1px] text-[var(--text-primary)]">
-                Tell us about your business
-              </h1>
-              <p className="mt-4 max-w-lg text-lg leading-[1.75] text-[var(--text-secondary)]">
-                We&apos;ll review your website, Google presence, and current lead flow — then show you exactly what we&apos;d fix first.
-              </p>
-              <div className="mt-8 space-y-4">
-                {[
-                  'A clear picture of where your business stands online today',
-                  'Specific opportunities in Google Ads, SEO, and your website',
-                  'Practical next steps — no obligation to move forward',
-                ].map((text, idx) => (
-                  <div key={idx} className="flex gap-3 rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
-                    <p className="text-[14px] leading-[1.65] text-[var(--text-secondary)]">{text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-[16px] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-8 shadow-lg">
-              <h2 className="text-[20px] font-bold text-[var(--text-primary)]">Request a free audit</h2>
-              <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
-                <input name="name" value={form.name} onChange={handleInputChange} className={inputClass} placeholder="Your name" required />
-                <input name="businessName" value={form.businessName} onChange={handleInputChange} className={inputClass} placeholder="Business name" required />
-                <input name="email" type="email" value={form.email} onChange={handleInputChange} className={inputClass} placeholder="Email address" required />
-                <select name="service" value={form.service} onChange={handleInputChange} className={inputClass}>
-                  <option>Website Creation</option>
-                  <option>Google Ads + SEO</option>
-                  <option>All of the above</option>
-                </select>
-                <textarea name="message" value={form.message} onChange={handleInputChange} className={`${inputClass} min-h-[120px]`} placeholder="What's your biggest growth challenge right now?" required />
-                {/* Honeypot — hidden from real users, traps bots */}
-                <input name="honeypot" value={form.honeypot} onChange={handleInputChange} tabIndex={-1} aria-hidden="true" autoComplete="off" style={{ display: 'none' }} />
-                {submitMessage && (
-                  <div className="rounded-[10px] border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)]">
-                    {submitMessage}
-                  </div>
-                )}
-                {submitError && (
-                  <div className="rounded-[10px] border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                    {submitError}
-                  </div>
-                )}
-                <button type="submit" disabled={isSubmitting} className={btnPrimary}>
-                  {isSubmitting ? 'Sending...' : 'Send Request'}{' '}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </form>
-            </div>
-          </div>
-        </FadeIn>
-      </Section>
-    </section>
-  );
-
-  // ─── CONTACT PAGE ───────────────────────────────────────────────────────────
-  const ContactPage = () => (
-    <section className="bg-[var(--bg-primary)] py-24">
-      <Section>
-        <FadeIn>
-          <div className="grid items-start gap-12 lg:grid-cols-2">
-            <div>
-              <SectionLabel>Contact</SectionLabel>
-              <h1 className="mt-3 text-[clamp(36px,5vw,60px)] font-bold tracking-[-1px] text-[var(--text-primary)]">
-                Contact &amp; Support
-              </h1>
-              <p className="mt-4 max-w-lg text-lg leading-[1.75] text-[var(--text-secondary)]">
-                Questions about your website, ads, or anything else? We typically reply within one business day.
-              </p>
-              <div className="mt-10 space-y-4">
-                {[
-                  {
-                    icon: Mail,
-                    label: 'Email us',
-                    value: 'hello@pittgrowthstudio.com',
-                    href: 'mailto:hello@pittgrowthstudio.com',
-                    note: 'Response within 1 business day',
-                  },
-                  {
-                    icon: Clock,
-                    label: 'Support hours',
-                    value: 'Monday – Friday',
-                    note: '9:00 AM – 6:00 PM ET',
-                  },
-                  {
-                    icon: MapPin,
-                    label: 'Based in',
-                    value: 'Pittsburgh, PA',
-                    note: 'Serving businesses across the greater Pittsburgh area',
-                  },
-                ].map(({ icon: Icon, label, value, href, note }) => (
-                  <div key={label} className="flex items-start gap-4 rounded-[14px] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[9px] border border-[var(--accent)]/20 bg-[var(--accent)]/10 text-[var(--accent)]">
-                      <Icon className="h-4.5 w-4.5" style={{ width: '18px', height: '18px' }} />
-                    </div>
-                    <div>
-                      <p className="text-[12px] text-[var(--text-muted)]">{label}</p>
-                      {href ? (
-                        <a href={href} className="mt-0.5 block font-semibold text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors">
-                          {value}
-                        </a>
-                      ) : (
-                        <p className="mt-0.5 font-semibold text-[var(--text-primary)]">{value}</p>
-                      )}
-                      <p className="mt-0.5 text-[13px] text-[var(--text-secondary)]">{note}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-6 text-[14px] text-[var(--text-secondary)]">
-                Looking for quick answers?{' '}
-                <button onClick={() => switchPage('faqs')} className="font-medium text-[var(--accent)] underline underline-offset-2">
-                  Check our FAQs
-                </button>
-              </p>
-            </div>
-            <div className="rounded-[16px] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-8 shadow-lg">
-              <h2 className="text-[20px] font-bold text-[var(--text-primary)]">Send a message</h2>
-              <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
-                <input name="name" value={form.name} onChange={handleInputChange} className={inputClass} placeholder="Your name" required />
-                <input name="businessName" value={form.businessName} onChange={handleInputChange} className={inputClass} placeholder="Business name" required />
-                <input name="email" type="email" value={form.email} onChange={handleInputChange} className={inputClass} placeholder="Email address" required />
-                <select name="service" value={form.service} onChange={handleInputChange} className={inputClass}>
-                  <option>Website Creation</option>
-                  <option>Google Ads + SEO</option>
-                  <option>Billing / Payments</option>
-                  <option>General Question</option>
-                  <option>Other</option>
-                </select>
-                <textarea name="message" value={form.message} onChange={handleInputChange} className={`${inputClass} min-h-[130px]`} placeholder="How can we help?" required />
-                {/* Honeypot — hidden from real users, traps bots */}
-                <input name="honeypot" value={form.honeypot} onChange={handleInputChange} tabIndex={-1} aria-hidden="true" autoComplete="off" style={{ display: 'none' }} />
-                {submitMessage && (
-                  <div className="rounded-[10px] border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)]">
-                    {submitMessage}
-                  </div>
-                )}
-                {submitError && (
-                  <div className="rounded-[10px] border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                    {submitError}
-                  </div>
-                )}
-                <button type="submit" disabled={isSubmitting} className={btnPrimary}>
-                  {isSubmitting ? 'Sending...' : 'Send Message'}{' '}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </form>
-            </div>
-          </div>
-        </FadeIn>
-      </Section>
-    </section>
-  );
-
   // ─── INVOICE PAGE ───────────────────────────────────────────────────────────
   const InvoicePage = () => (
     <section className="bg-[var(--bg-primary)] py-24">
@@ -1063,12 +1081,12 @@ export default function PittsburghAgencySite() {
                 value={invoicePassword}
                 onChange={(e) => setInvoicePassword(e.target.value)}
                 autoComplete="current-password"
-                className={inputClass}
+                className={INPUT_CLASS}
                 placeholder="Enter password"
                 required
               />
               {invoicePasswordError && <p className="mt-2 text-sm text-red-400">{invoicePasswordError}</p>}
-              <button type="submit" className={`mt-4 w-full ${btnPrimary}`}>
+              <button type="submit" className={`mt-4 w-full ${BTN_PRIMARY}`}>
                 Unlock <ArrowRight className="h-4 w-4" />
               </button>
             </form>
@@ -1078,23 +1096,23 @@ export default function PittsburghAgencySite() {
                 <div className="grid gap-4">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">Client name <span className="text-red-400">*</span></label>
-                    <input value={invoiceClientName} onChange={(e) => setInvoiceClientName(e.target.value)} className={inputClass} placeholder="e.g. Smith Roofing" required />
+                    <input value={invoiceClientName} onChange={(e) => setInvoiceClientName(e.target.value)} className={INPUT_CLASS} placeholder="e.g. Smith Roofing" required />
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">Client email <span className="text-red-400">*</span></label>
-                    <input type="email" value={invoiceClientEmail} onChange={(e) => setInvoiceClientEmail(e.target.value)} className={inputClass} placeholder="client@example.com" required />
+                    <input type="email" value={invoiceClientEmail} onChange={(e) => setInvoiceClientEmail(e.target.value)} className={INPUT_CLASS} placeholder="client@example.com" required />
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">Service description</label>
-                    <input value={invoiceService} onChange={(e) => setInvoiceService(e.target.value)} className={inputClass} placeholder="e.g. Website + Google Ads Package" />
+                    <input value={invoiceService} onChange={(e) => setInvoiceService(e.target.value)} className={INPUT_CLASS} placeholder="e.g. Website + Google Ads Package" />
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">Upfront fee ($)</label>
-                    <input type="number" min="0" step="0.01" value={invoiceUpfront} onChange={(e) => setInvoiceUpfront(e.target.value)} className={inputClass} placeholder="0.00" />
+                    <input type="number" min="0" step="0.01" value={invoiceUpfront} onChange={(e) => setInvoiceUpfront(e.target.value)} className={INPUT_CLASS} placeholder="0.00" />
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">Monthly fee ($)</label>
-                    <input type="number" min="0" step="0.01" value={invoiceMonthly} onChange={(e) => setInvoiceMonthly(e.target.value)} className={inputClass} placeholder="0.00" />
+                    <input type="number" min="0" step="0.01" value={invoiceMonthly} onChange={(e) => setInvoiceMonthly(e.target.value)} className={INPUT_CLASS} placeholder="0.00" />
                   </div>
                   {(parseFloat(invoiceUpfront) > 0 || parseFloat(invoiceMonthly) > 0) && (
                     <div className="rounded-[10px] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] px-4 py-3 text-sm text-[var(--text-secondary)] space-y-1">
@@ -1114,7 +1132,7 @@ export default function PittsburghAgencySite() {
                       {invoiceMonthlyUrl && <p>Monthly link: <a href={invoiceMonthlyUrl} target="_blank" rel="noopener noreferrer" className="underline break-all">{invoiceMonthlyUrl}</a></p>}
                     </div>
                   )}
-                  <button type="submit" disabled={invoiceLoading} className={btnPrimary}>
+                  <button type="submit" disabled={invoiceLoading} className={BTN_PRIMARY}>
                     {invoiceLoading ? 'Sending...' : 'Send Payment Link'} <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
@@ -1127,7 +1145,7 @@ export default function PittsburghAgencySite() {
                 <div className="mt-4 grid gap-4">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">Payment Intent ID</label>
-                    <input value={refundPaymentId} onChange={(e) => setRefundPaymentId(e.target.value)} className={`${inputClass} font-mono text-sm`} placeholder="pi_3..." />
+                    <input value={refundPaymentId} onChange={(e) => setRefundPaymentId(e.target.value)} className={`${INPUT_CLASS} font-mono text-sm`} placeholder="pi_3..." />
                   </div>
                   {refundError && <div className="rounded-[10px] border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{refundError}</div>}
                   {refundSuccess && <div className="rounded-[10px] border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)]">{refundSuccess}</div>}
@@ -1176,10 +1194,10 @@ export default function PittsburghAgencySite() {
         />
       );
     }
-    if (page === 'contact') return <ContactPage />;
+    if (page === 'contact') return <ContactPage onNavigate={switchPage} />;
     if (page === 'invoice') return <InvoicePage />;
     if (page === 'faqs') return <FAQPage />;
-    if (page === 'book') return <BookPage />;
+    if (page === 'book') return <BookPage onNavigate={switchPage} />;
     return <HomePage />;
   };
 
