@@ -8,10 +8,6 @@ const syne = Syne({ subsets: ['latin'], variable: '--font-syne' });
 export const metadata: Metadata = {
   title: 'Pittsburgh Growth Studio',
   description: 'Websites and Google Ads + SEO for local businesses.',
-  icons: {
-    icon: '/logo.svg',
-    apple: '/logo.svg',
-  },
   themeColor: '#070d1a',
 };
 
