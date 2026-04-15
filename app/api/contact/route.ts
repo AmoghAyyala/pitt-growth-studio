@@ -15,7 +15,7 @@ function stripHtml(str: string): string {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Security feature 4: Field length limits (prevent oversized payloads)
-const MAX_LENGTHS = { name: 100, businessName: 150, email: 254, service: 100, message: 2000 };
+const MAX_LENGTHS = { name: 100, email: 254, phone: 40, service: 100, message: 2000 };
 
 // Security feature 5: Body size limit (reject payloads over 10KB)
 const MAX_BODY_BYTES = 10 * 1024;
@@ -43,14 +43,14 @@ export async function POST(request: NextRequest) {
   const resend = new Resend(resendKey);
 
   try {
-    const { name, businessName, email, service, message, honeypot } = await request.json();
+    const { name, email, phone, service, message, honeypot } = await request.json();
 
     // Security feature 6: Honeypot trap — bots fill hidden fields, humans don't
     if (honeypot) {
       return jsonNoStore({ ok: true });
     }
 
-    if (!name || !businessName || !email || !message) {
+    if (!name || !email || !message) {
       return jsonNoStore({ error: 'Missing required fields.' }, { status: 400 });
     }
 
@@ -60,28 +60,28 @@ export async function POST(request: NextRequest) {
 
     if (
       String(name).length > MAX_LENGTHS.name ||
-      String(businessName).length > MAX_LENGTHS.businessName ||
       String(email).length > MAX_LENGTHS.email ||
+      String(phone ?? '').length > MAX_LENGTHS.phone ||
       String(message).length > MAX_LENGTHS.message
     ) {
       return jsonNoStore({ error: 'One or more fields exceed the maximum allowed length.' }, { status: 400 });
     }
 
     const safeName = stripHtml(String(name));
-    const safeBusinessName = stripHtml(String(businessName));
     const safeEmail = stripHtml(String(email));
+    const safePhone = stripHtml(String(phone ?? ''));
     const safeService = stripHtml(String(service ?? ''));
     const safeMessage = stripHtml(String(message));
 
     await resend.emails.send({
-      from: 'Pitt Growth Studio <hello@pittgrowthstudio.com>',
+      from: 'A Cut Above The Rest <hello@pittgrowthstudio.com>',
       to: 'hello@pittgrowthstudio.com',
       replyTo: safeEmail,
-      subject: `New website lead from ${safeBusinessName}`,
+      subject: `New salon inquiry from ${safeName}`,
       text: `
 Name: ${safeName}
-Business: ${safeBusinessName}
 Email: ${safeEmail}
+Phone: ${safePhone || 'Not provided'}
 Service: ${safeService}
 Message:
 ${safeMessage}
@@ -94,3 +94,4 @@ ${safeMessage}
     return jsonNoStore({ error: 'Failed to send email.' }, { status: 500 });
   }
 }
+
